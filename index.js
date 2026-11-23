@@ -43,7 +43,9 @@ io.on("connection", (socket) => {
   });
 });
 
-app.use(router.init(io));
+const apiRouter = router.init(io);
+app.use("/api", apiRouter);
+app.use(apiRouter);
 app.use("/images", express.static(path.join(__dirname, "images")));
 
 server.listen(port, hostname, () => {
