@@ -9,6 +9,7 @@ function AuthRouter() {
 
     router.use(bodyParser.json({ limit: "100mb" }));
     router.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
+    router.use(cookieParser());
 
     router.route("/register").post(function (req, res, next) {
         const body = req.body;

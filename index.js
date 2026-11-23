@@ -4,19 +4,33 @@ const mongoose = require("mongoose");
 const path = require("path");
 const socketIo = require("socket.io");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const config = require("./config");
 const hostname = process.env.HOST || "localhost";
 const port = Number(process.env.PORT) || 3000;
 let router = require("./router");
 var app = express();
 
-const allowedOrigins = (process.env.CORS_ORIGIN || "*")
+const configuredOrigins = (process.env.CORS_ORIGIN || "")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+const allowedOrigins = process.env.NODE_ENV === "production"
+  ? configuredOrigins
+  : ["http://localhost:5173", "http://127.0.0.1:5173", ...configuredOrigins];
+
+const corsOrigin = (origin, callback) => {
+  if (!origin || allowedOrigins.includes(origin)) {
+    callback(null, true);
+    return;
+  }
+  callback(new Error("Origin not allowed by CORS"));
+};
+
+app.use(cookieParser());
 app.use(cors({
-  origin: allowedOrigins.includes("*") ? "*" : allowedOrigins,
+  origin: corsOrigin,
   credentials: true,
 }));
 
@@ -28,7 +42,7 @@ mongoose
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: allowedOrigins.includes("*") ? "*" : allowedOrigins,
+    origin: corsOrigin,
     methods: ["GET", "POST"],
     credentials: true,
   },
